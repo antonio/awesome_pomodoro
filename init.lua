@@ -24,6 +24,7 @@ function Pomodoro:reset_timer()
   else
     self.time_left = 1500
   end
+  return self.time_left
 end
 
 function Pomodoro:decrease_timer()
