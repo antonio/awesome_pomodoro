@@ -5,13 +5,13 @@
 
 local wibox = require("wibox")
 local awful = require("awful")
+local naughty = require("naughty")
 local timer = timer
 local string = string
 
 local Pomodoro = {
   iteration = 1,
   widget = wibox.widget.textbox(),
-  wibox = wibox({ x = 200, y = 200, ontop = true}),
   timer = timer({ timeout = 1 }),
   time_left = 0
 }
@@ -27,17 +27,19 @@ function Pomodoro:reset_timer()
 end
 
 function Pomodoro:decrease_timer()
-  self.time_left = self.time_left - 1
   if self.time_left == 0 then
     self.iteration = self.iteration + 1
     self.time_left = self:reset_timer()
+    self:notify()
+  else
+    self.time_left = self.time_left - 1
   end
   self.widget:set_text(self:widget_text())
 end
 
 function Pomodoro:notify()
-  -- naughty
-  -- play sound
+  naughty.notify({title="Pomodoro!",text=self:status()})
+  -- play sound?
 end
 
 function Pomodoro:status()
@@ -55,17 +57,30 @@ function Pomodoro:widget_text()
   return string.format(" %s %02d:%02d ", current_status, minutes, seconds)
 end
 
+function Pomodoro:toggle()
+  if self.timer.started then
+    self.timer:stop()
+  else
+    self.timer:start()
+  end
+end
+
+function Pomodoro:reset()
+  self.time_left = 0
+  self.iteration = 1
+  self:reset_timer()
+  self.widget:set_text(self:widget_text())
+end
+
 pomodoro = Pomodoro
 
-pomodoro.wibox.ontop = true
-pomodoro.wibox:geometry({ width=100, height=200, x=400,y=200})
-pomodoro.wibox.screen = 1
-pomodoro.wibox:set_widget(pomodoro.widget)
 pomodoro:reset_timer()
 pomodoro.widget:set_text(pomodoro:widget_text())
 pomodoro.timer:connect_signal("timeout", function() pomodoro:decrease_timer() end)
-pomodoro.timer:start()
 
+pomodoro.widget:buttons(awful.util.table.join(
+                           awful.button({ }, 1, function () pomodoro:toggle() end),
+                           awful.button({ }, 3, function () pomodoro:reset() end)))
 
 return pomodoro
 
