@@ -17,7 +17,7 @@ local Pomodoro = {
 }
 
 function Pomodoro:reset_timer()
-  if self.iteration % 4 == 0 then
+  if self.iteration % 8 == 0 then
     self.time_left = 900
   elseif self.iteration % 2 == 0 then
     self.time_left = 300
